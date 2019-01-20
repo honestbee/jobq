@@ -22,12 +22,13 @@ type JobDispatcher interface {
 }
 
 // NewWorkerDispatcher creates a new Dispatcher and initializes its workers.
-func NewWorkerDispatcher(srvName string, opts ...WorkerDispatcherOption) *WorkerDispatcher {
+func NewWorkerDispatcher(opts ...WorkerDispatcherOption) *WorkerDispatcher {
 	d := &WorkerDispatcher{
 		workerAdjusterPeriod: defaultJobAdjusterPeriod,
 		metricsReportPeriod:  defaultMetricsReportPeriod,
-		stopC:                make(chan bool),
-		metric:               newMetric(srvName),
+		stopC:                make(chan struct{}),
+		stopCS:               make([]chan struct{}, 0, 3),
+		metric:               newEmptyMetric(),
 		scaler:               newScaler(),
 	}
 
@@ -36,23 +37,29 @@ func NewWorkerDispatcher(srvName string, opts ...WorkerDispatcherOption) *Worker
 	}
 
 	d.jobC = make(chan *job, d.scaler.workerPoolSize)
-
 	d.setWorkerSize(d.scaler.workersNumLowerBound)
-	d.start()
 
+	if d.reportFunc != nil {
+		d.metric = newMetric(d.reportFunc)
+		d.startWorkerAdjuster()
+		d.startMetric()
+	}
+
+	d.startDispatcher()
 	return d
 }
 
 // WorkerDispatcher is used to maintain and delegate jobs to workers.
 type WorkerDispatcher struct {
 	jobC                 chan *job
-	stopC                chan bool
-	jobTrackerExpiry     time.Duration
+	stopC                chan struct{}
+	stopCS               []chan struct{}
 	workerAdjusterPeriod time.Duration
 	metricsReportPeriod  time.Duration
 	metric               Metric
 	scaler               *scaler
 	curID                uint64
+	reportFunc           func(TrackParams)
 
 	workersLock sync.Mutex
 	workers     []*worker
@@ -61,8 +68,10 @@ type WorkerDispatcher struct {
 // Stop signals all workers to stop running their current
 // jobs, waits for them to finish, then returns.
 func (d *WorkerDispatcher) Stop() {
-	d.stopC <- true
-	<-d.stopC
+	close(d.stopC)
+	for _, c := range d.stopCS {
+		<-c
+	}
 }
 
 // Queue takes an implementer of the JobRunner interface and schedules it to
@@ -88,24 +97,54 @@ func (d *WorkerDispatcher) QueueTimedFunc(ctx context.Context, j JobRunnerFunc, 
 	return d.QueueTimed(ctx, JobRunner(j), timeout)
 }
 
-func (d *WorkerDispatcher) start() {
-	workerAdjusterPeriod := time.NewTicker(d.workerAdjusterPeriod)
-	metricsReportPeriod := time.NewTicker(d.metricsReportPeriod)
-	stopWorkQueueC := make(chan struct{})
+func (d *WorkerDispatcher) startMetric() {
+	done := make(chan struct{})
+	d.stopCS = append(d.stopCS, done)
+	ticker := time.NewTicker(d.metricsReportPeriod)
 
 	go func() {
 		for {
 			select {
-			case <-workerAdjusterPeriod.C:
-				go d.setWorkerSize(d.scaler.scale(d.metric))
-			case <-metricsReportPeriod.C:
+			case <-ticker.C:
 				go d.metric.Report()
 			case <-d.stopC:
-				workerAdjusterPeriod.Stop()
-				metricsReportPeriod.Stop()
+				ticker.Stop()
+				close(done)
+				return
+			}
+		}
+	}()
+}
+
+func (d *WorkerDispatcher) startWorkerAdjuster() {
+	done := make(chan struct{})
+	d.stopCS = append(d.stopCS, done)
+	ticker := time.NewTicker(d.workerAdjusterPeriod)
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				go d.setWorkerSize(d.scaler.scale(d.metric))
+			case <-d.stopC:
+				ticker.Stop()
+				close(done)
+				return
+			}
+		}
+	}()
+}
+
+func (d *WorkerDispatcher) startDispatcher() {
+	done := make(chan struct{})
+	d.stopCS = append(d.stopCS, done)
+
+	go func() {
+		for {
+			select {
+			case <-d.stopC:
 				d.setWorkerSize(0)
-				close(stopWorkQueueC)
-				close(d.stopC)
+				close(done)
 				return
 			}
 		}

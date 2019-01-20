@@ -5,15 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/honestbee/jobq"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/honestbee/orochi/internal/jobq"
 )
 
 func TestJobTimeoutBeforeIntoWorker(t *testing.T) {
 	assert := assert.New(t)
 
-	d := jobq.NewWorkerDispatcher("orochi_workers", jobq.WorkerN(1), jobq.WorkerPoolSize(1))
+	d := jobq.NewWorkerDispatcher(jobq.WorkerN(1), jobq.WorkerPoolSize(1))
 	defer d.Stop()
 
 	timeout := 100 * time.Millisecond

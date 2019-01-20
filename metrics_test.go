@@ -4,13 +4,7 @@ import (
 	"fmt"
 	"math"
 	"testing"
-
-	"github.com/honestbee/orochi/internal/prometheus"
 )
-
-func init() {
-	prometheus.Init()
-}
 
 func TestGetTotalWorkers(t *testing.T) {
 	tests := []struct {
@@ -30,7 +24,7 @@ func TestGetTotalWorkers(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("set:%d", tt.set), func(t *testing.T) {
-			metrics := newMetric("testing")
+			metrics := newMetric(func(TrackParams) {})
 			metrics.SetTotalWorkers(tt.set)
 			got := metrics.TotalWorkers()
 			if tt.want != got {
@@ -66,7 +60,7 @@ func TestJobTimeoutRate(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.description, func(t *testing.T) {
-			metrics := newMetric("testing")
+			metrics := newMetric(func(TrackParams) {})
 			for _, f := range tt.presets {
 				f(metrics)
 			}
@@ -109,7 +103,7 @@ func TestWorkerLoading(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.description, func(t *testing.T) {
-			metrics := newMetric("testing")
+			metrics := newMetric(func(TrackParams) {})
 			for _, f := range tt.presets {
 				f(metrics)
 			}
@@ -144,7 +138,7 @@ func TestResetCounters(t *testing.T) {
 	for i, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("case[%d]", i), func(t *testing.T) {
-			metrics := newMetric("testing")
+			metrics := newMetric(func(TrackParams) {})
 			for _, f := range tt.presets {
 				f(metrics)
 			}

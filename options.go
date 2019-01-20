@@ -29,6 +29,16 @@ func WorkerPoolSize(size int) WorkerDispatcherOption {
 	}
 }
 
+// TrackReportFunc sets how the tracking tool to report metrics.
+func TrackReportFunc(f func(TrackParams)) WorkerDispatcherOption {
+	if f == nil {
+		panic(errors.New("the track report function should not be nil"))
+	}
+	return func(d *WorkerDispatcher) {
+		d.reportFunc = f
+	}
+}
+
 // WorkerAdjustPeriod sets the period of checking
 // 1. the timeout rate of jobs (timeout jobs / total jobs in a period)
 // 2. the workers loading (busy workers / total workers)
@@ -93,17 +103,5 @@ func WorkerMargin(margin float64) WorkerDispatcherOption {
 	}
 	return func(d *WorkerDispatcher) {
 		d.scaler.workerMargin = margin
-	}
-}
-
-// JobStatusExpiry sets the duration after a job completes
-// to maintain the job's tracker info. After expiry elapsed,
-// the info will be purged.
-func JobStatusExpiry(expiry time.Duration) WorkerDispatcherOption {
-	if expiry <= 0 {
-		panic(errors.New("non-positive interval for the expiry"))
-	}
-	return func(d *WorkerDispatcher) {
-		d.jobTrackerExpiry = expiry
 	}
 }

@@ -9,13 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/honestbee/orochi/internal/jobq"
-	"github.com/honestbee/orochi/internal/prometheus"
+	"github.com/honestbee/jobq"
 )
-
-func init() {
-	prometheus.Init()
-}
 
 func TestWorkerDispatcher_Queue(t *testing.T) {
 	qf := func(d jobq.JobDispatcher, f jobq.JobRunnerFunc) jobq.JobTracker {
@@ -64,7 +59,7 @@ func TestWorkerDispatcher_EarlyStop(t *testing.T) {
 		t.Run(fmt.Sprintf("With %d worker(s)", tt.workerN), func(t *testing.T) {
 			assert := assert.New(t)
 
-			d := jobq.NewWorkerDispatcher("orochi_workers", jobq.WorkerN(tt.workerN))
+			d := jobq.NewWorkerDispatcher(jobq.WorkerN(tt.workerN))
 			workers := d.Workers()
 			for i, worker := range workers {
 				assert.Equal(i, worker.ID())
@@ -97,7 +92,7 @@ func testQueueBasic(t *testing.T, qf queueFunc) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprintf("Queue a job runner with %v, %v returned", tt.payload, tt.err), func(t *testing.T) {
-			d := jobq.NewWorkerDispatcher("orochi_workers")
+			d := jobq.NewWorkerDispatcher()
 			defer d.Stop()
 
 			proceed := make(chan bool, 1)
@@ -142,7 +137,7 @@ func testQueueBasic(t *testing.T, qf queueFunc) {
 func testQueueCancel(t *testing.T, qf queueFunc) {
 	assert := assert.New(t)
 
-	d := jobq.NewWorkerDispatcher("orochi_workers")
+	d := jobq.NewWorkerDispatcher()
 	defer d.Stop()
 
 	proceed := make(chan bool)
@@ -197,7 +192,7 @@ func testQueueStop(t *testing.T, qf queueFunc) {
 		t.Run(fmt.Sprintf("When the number of workers is %d", tt.worker), func(t *testing.T) {
 			assert := assert.New(t)
 
-			d := jobq.NewWorkerDispatcher("orochi_workers", jobq.ForceWorkerN(tt.worker))
+			d := jobq.NewWorkerDispatcher(jobq.ForceWorkerN(tt.worker))
 
 			proceed := make(chan bool)
 
@@ -241,7 +236,7 @@ func testQueueStop(t *testing.T, qf queueFunc) {
 func testQueueTimeout(t *testing.T, qf queueTimedFunc) {
 	assert := assert.New(t)
 
-	d := jobq.NewWorkerDispatcher("orochi_workers")
+	d := jobq.NewWorkerDispatcher()
 	defer d.Stop()
 
 	timeout := 100 * time.Millisecond
@@ -288,7 +283,7 @@ func testQueueTimeout(t *testing.T, qf queueTimedFunc) {
 func testQueueTimeout_completeBeforeTimeout(t *testing.T, qf queueTimedFunc) {
 	assert := assert.New(t)
 
-	d := jobq.NewWorkerDispatcher("orochi_workers")
+	d := jobq.NewWorkerDispatcher()
 	defer d.Stop()
 
 	timeout := 10 * time.Second

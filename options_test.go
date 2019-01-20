@@ -263,38 +263,3 @@ func TestWorkerPoolSize(t *testing.T) {
 		})
 	}
 }
-
-func TestJobStatusExpiry(t *testing.T) {
-	tests := []struct {
-		expiry      time.Duration
-		shouldPanic bool
-	}{
-		{time.Duration(-1000), true},
-		{time.Duration(-1), true},
-		{time.Duration(0), true},
-		{time.Duration(1), false},
-		{time.Duration(1000), false},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(fmt.Sprintf("Set job status expiry to %s", tt.expiry), func(t *testing.T) {
-			assert := assert.New(t)
-
-			d := &WorkerDispatcher{}
-
-			assert.Equal(time.Duration(0), d.jobTrackerExpiry)
-
-			f := func() {
-				JobStatusExpiry(tt.expiry)(d)
-			}
-
-			if tt.shouldPanic {
-				assert.Panics(f)
-				assert.Equal(time.Duration(0), d.jobTrackerExpiry)
-			} else {
-				assert.NotPanics(f)
-				assert.Equal(tt.expiry, d.jobTrackerExpiry)
-			}
-		})
-	}
-}

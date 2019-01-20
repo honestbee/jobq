@@ -2,9 +2,14 @@ package jobq
 
 import (
 	"sync/atomic"
-
-	"github.com/honestbee/orochi/internal/prometheus"
 )
+
+// TrackParams is the params input into report function.
+type TrackParams struct {
+	JobQueueSize uint64
+	TotalWorkers uint64
+	BusyWorkers  uint64
+}
 
 // Metric represents the contract that it must report corresponding metrics.
 type Metric interface {
@@ -21,8 +26,26 @@ type Metric interface {
 	ResetCounters()
 }
 
+type emptyMetric struct{}
+
+func newEmptyMetric() Metric {
+	return &emptyMetric{}
+}
+
+func (e *emptyMetric) SetTotalWorkers(v int)        {}
+func (e *emptyMetric) TotalWorkers() uint64         { return 0 }
+func (e *emptyMetric) SetCurrentJobQueueSize(v int) {}
+func (e *emptyMetric) IncBusyWorker()               {}
+func (e *emptyMetric) DecBusyWorker()               {}
+func (e *emptyMetric) IncJobTimeout()               {}
+func (e *emptyMetric) IncJobsCounter()              {}
+func (e *emptyMetric) Report()                      {}
+func (e *emptyMetric) JobTimeoutRate() float64      { return 0.0 }
+func (e *emptyMetric) WorkerLoading() float64       { return 0.0 }
+func (e *emptyMetric) ResetCounters()               {}
+
 type metric struct {
-	collector prometheus.Collector
+	reportFunc func(TrackParams)
 
 	// for prometheus metrics usage
 	curJobQueueSize uint64
@@ -34,16 +57,20 @@ type metric struct {
 	jobsCounter uint64
 }
 
-func newMetric(name string) Metric {
+func newMetric(reportFunc func(TrackParams)) Metric {
 	return &metric{
-		collector: prometheus.Metrics.Get(name),
+		reportFunc: reportFunc,
 	}
 }
 
 func (m *metric) Report() {
-	m.collector.Get(prometheus.WorkerpoolCurrentJobQueueSize).Set(float64(atomic.LoadUint64(&m.curJobQueueSize)))
-	m.collector.Get(prometheus.WorkerpoolTotalWorkers).Set(float64(atomic.LoadUint64(&m.totalWorkers)))
-	m.collector.Get(prometheus.WorkerpoolBusyWorkers).Set(float64(atomic.LoadUint64(&m.busyWorkers)))
+	m.reportFunc(
+		TrackParams{
+			TotalWorkers: atomic.LoadUint64(&m.totalWorkers),
+			BusyWorkers:  atomic.LoadUint64(&m.busyWorkers),
+			JobQueueSize: atomic.LoadUint64(&m.curJobQueueSize),
+		},
+	)
 }
 
 func (m *metric) TotalWorkers() uint64 {

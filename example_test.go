@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/honestbee/orochi/internal/jobq"
+	"github.com/honestbee/jobq"
 )
 
 func Example_basic() {
-	dispatcher := jobq.NewWorkerDispatcher("orochi_workers")
+	dispatcher := jobq.NewWorkerDispatcher()
 	defer dispatcher.Stop()
 
 	tracker := dispatcher.QueueFunc(context.Background(), func(ctx context.Context) (interface{}, error) {
@@ -36,7 +36,7 @@ func Example_basic() {
 }
 
 func Example_timeout() {
-	dispatcher := jobq.NewWorkerDispatcher("orochi_workers")
+	dispatcher := jobq.NewWorkerDispatcher()
 	defer dispatcher.Stop()
 
 	tracker := dispatcher.QueueTimedFunc(context.Background(), func(ctx context.Context) (interface{}, error) {
@@ -61,7 +61,7 @@ func Example_timeout() {
 }
 
 func Example_getAllResults() {
-	dispatcher := jobq.NewWorkerDispatcher("orochi_workers")
+	dispatcher := jobq.NewWorkerDispatcher()
 	defer dispatcher.Stop()
 
 	rand.Seed(time.Now().UnixNano())
