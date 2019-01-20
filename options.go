@@ -29,13 +29,38 @@ func WorkerPoolSize(size int) WorkerDispatcherOption {
 	}
 }
 
-// TrackReportFunc sets how the tracking tool to report metrics.
-func TrackReportFunc(f func(TrackParams)) WorkerDispatcherOption {
+// EnableTrackReport enables the tracking report function,
+// the input func sets how to report metrics.
+// ***Enable this the below options will be functional***
+// 1. MetricsReportPeriod
+func EnableTrackReport(f func(TrackParams)) WorkerDispatcherOption {
 	if f == nil {
 		panic(errors.New("the track report function should not be nil"))
 	}
 	return func(d *WorkerDispatcher) {
 		d.reportFunc = f
+	}
+}
+
+// MetricsReportPeriod sets the period of reporting prometheus metrics.
+func MetricsReportPeriod(period time.Duration) WorkerDispatcherOption {
+	if period <= 0 {
+		panic(errors.New("the period of metrics report must greater than 0"))
+	}
+	return func(d *WorkerDispatcher) {
+		d.metricsReportPeriod = period
+	}
+}
+
+// EnableDynamicAdjustWorkers enables the dynamic adjusting worker mechanism,
+// ***Enable this the below options will be functional***
+// 1. WorkerAdjustPeriod
+// 2. JobTimeoutRateBoundPercentage
+// 3. WorkerLoadingBoundPercentage
+// 4. WorkerMargin
+func EnableDynamicAdjustWorkers(enable bool) WorkerDispatcherOption {
+	return func(d *WorkerDispatcher) {
+		d.enableDynamicWorker = enable
 	}
 }
 
@@ -49,16 +74,6 @@ func WorkerAdjustPeriod(period time.Duration) WorkerDispatcherOption {
 	}
 	return func(d *WorkerDispatcher) {
 		d.workerAdjusterPeriod = period
-	}
-}
-
-// MetricsReportPeriod sets the period of reporting prometheus metrics.
-func MetricsReportPeriod(period time.Duration) WorkerDispatcherOption {
-	if period <= 0 {
-		panic(errors.New("the period of metrics report must greater than 0"))
-	}
-	return func(d *WorkerDispatcher) {
-		d.metricsReportPeriod = period
 	}
 }
 

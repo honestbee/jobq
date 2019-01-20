@@ -39,9 +39,12 @@ func NewWorkerDispatcher(opts ...WorkerDispatcherOption) *WorkerDispatcher {
 	d.jobC = make(chan *job, d.scaler.workerPoolSize)
 	d.setWorkerSize(d.scaler.workersNumLowerBound)
 
+	if d.enableDynamicWorker {
+		d.startWorkerAdjuster()
+	}
+
 	if d.reportFunc != nil {
 		d.metric = newMetric(d.reportFunc)
-		d.startWorkerAdjuster()
 		d.startMetric()
 	}
 
@@ -60,6 +63,7 @@ type WorkerDispatcher struct {
 	scaler               *scaler
 	curID                uint64
 	reportFunc           func(TrackParams)
+	enableDynamicWorker  bool
 
 	workersLock sync.Mutex
 	workers     []*worker
