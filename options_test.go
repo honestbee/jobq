@@ -136,7 +136,6 @@ func TestMetricsReportPeriod(t *testing.T) {
 		{time.Duration(1000), false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(fmt.Sprintf("Set metrics report period to %s", tt.period), func(t *testing.T) {
 			assert := assert.New(t)
 
@@ -171,7 +170,6 @@ func TestWorkerAdjustPeriod(t *testing.T) {
 		{time.Duration(1000), false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(fmt.Sprintf("Set worker adjust period to %s", tt.period), func(t *testing.T) {
 			assert := assert.New(t)
 
@@ -205,7 +203,6 @@ func TestWorkerN(t *testing.T) {
 		{1024, false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(fmt.Sprintf("Set %d worker(s)", tt.worker), func(t *testing.T) {
 			assert := assert.New(t)
 
@@ -239,7 +236,6 @@ func TestWorkerPoolSize(t *testing.T) {
 		{1024, false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(fmt.Sprintf("Set pool size: %d ", tt.size), func(t *testing.T) {
 			assert := assert.New(t)
 
