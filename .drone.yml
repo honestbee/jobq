@@ -22,7 +22,7 @@ pipeline:
       - chmod +x ./cc-test-reporter
 
   test:
-    image: golang:1.11-alpine
+    image: golang:1.11
     pull: true
     environment:
       - GIT_COMMIT_SHA=${DRONE_COMMIT_SHA}
@@ -31,7 +31,7 @@ pipeline:
       - cc_test_reporter_id
     commands:
       - apk add --update --no-cache gcc musl-dev make bash git 
-      - make test
+      - go test -race -coverprofile jobq.coverprofile ./...
       - ./cc-test-reporter format-coverage -t gocov jobq.coverprofile --output coverage/codeclimate.jobq.json
       - ./cc-test-reporter sum-coverage coverage/codeclimate.*.json
       - ./cc-test-reporter upload-coverage
