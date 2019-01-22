@@ -2,7 +2,7 @@
 
 ---
 
-**jobq** is a generic worker pool library with dynamic adjust workers number
+**jobq** is a generic worker pool library with dynamic adjust worker number
 
 ## Install
 
@@ -102,7 +102,7 @@ func main() {
                 dispatcher.QueueFunc(job)
         }
 
-        // now the worker size will increase to 10 workers
+        // now the worker number will increase from 1 to 10
 }
 ```
 
@@ -141,4 +141,8 @@ func main() {
 }
 ```
 
-for more [examples](./example_test.go)
+more [examples](./example_test.go)
+
+## Contribution
+
+please feel free to do the pull request !!!
