@@ -45,6 +45,7 @@ pipeline:
       - GO111MODULE=on
     secrets:
       - reviewdog_github_api_token
+      - reviewdog_token
     commands:
       - apk add --update --no-cache alpine-sdk
       - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
