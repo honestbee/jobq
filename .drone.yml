@@ -30,7 +30,6 @@ pipeline:
     secrets:
       - cc_test_reporter_id
     commands:
-      - apk add --update --no-cache gcc musl-dev make bash git 
       - go test -race -coverprofile jobq.coverprofile ./...
       - ./cc-test-reporter format-coverage -t gocov jobq.coverprofile --output coverage/codeclimate.jobq.json
       - ./cc-test-reporter sum-coverage coverage/codeclimate.*.json
