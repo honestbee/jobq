@@ -1,7 +1,6 @@
 # jobq
 
 ---
-
 **jobq** is a generic worker pool library with dynamic adjust worker number
 
 ## Install
