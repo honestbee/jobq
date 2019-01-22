@@ -19,7 +19,6 @@ func TestWorkerMargin(t *testing.T) {
 		{1024.0, false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(fmt.Sprintf("Set worker margin:%f", tt.margin), func(t *testing.T) {
 			assert := assert.New(t)
 
@@ -58,7 +57,6 @@ func TestWorkerLoadingBoundPercentage(t *testing.T) {
 		{80, 50, false},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(fmt.Sprintf("Set worker loading upper bound to %f, lower bound to %f", tt.upper, tt.lower), func(t *testing.T) {
 			assert := assert.New(t)
 
