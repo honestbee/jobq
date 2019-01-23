@@ -144,14 +144,9 @@ func (d *WorkerDispatcher) startDispatcher() {
 	d.stopCS = append(d.stopCS, done)
 
 	go func() {
-		for {
-			select {
-			case <-d.stopC:
-				d.setWorkerSize(0)
-				close(done)
-				return
-			}
-		}
+		<-d.stopC
+		d.setWorkerSize(0)
+		close(done)
 	}()
 }
 

@@ -122,9 +122,7 @@ func (j *job) listen() {
 	select {
 	case <-j.ctx.Done():
 		j.close(nil, j.ctx.Err())
-
-		switch j.ctx.Err() {
-		case context.DeadlineExceeded:
+		if j.ctx.Err() == context.DeadlineExceeded {
 			j.metric.IncJobTimeout()
 		}
 

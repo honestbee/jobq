@@ -3,6 +3,7 @@ package jobq_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -86,7 +87,10 @@ func Example_getAllResults() {
 
 	wg.Wait()
 	for _, tracker := range trackers {
-		payload, _ := tracker.Result()
+		payload, err := tracker.Result()
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Println(payload)
 	}
 

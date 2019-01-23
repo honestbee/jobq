@@ -34,7 +34,7 @@ func TestWorkerDispatcher_QueueTimed(t *testing.T) {
 		return d.QueueTimed(context.Background(), jobq.JobRunner(f), timeout)
 	}
 	testQueueTimeout(t, qf)
-	testQueueTimeout_completeBeforeTimeout(t, qf)
+	testQueueTimeoutCompleteBeforeTimeout(t, qf)
 }
 
 func TestWorkerDispatcher_QueueTimedFunc(t *testing.T) {
@@ -42,7 +42,7 @@ func TestWorkerDispatcher_QueueTimedFunc(t *testing.T) {
 		return d.QueueTimedFunc(context.Background(), f, timeout)
 	}
 	testQueueTimeout(t, qf)
-	testQueueTimeout_completeBeforeTimeout(t, qf)
+	testQueueTimeoutCompleteBeforeTimeout(t, qf)
 }
 
 func TestWorkerDispatcher_EarlyStop(t *testing.T) {
@@ -195,15 +195,13 @@ func testQueueStop(t *testing.T, qf queueFunc) {
 			d := jobq.NewWorkerDispatcher(jobq.ForceWorkerN(tt.worker))
 
 			proceed := make(chan bool)
-
-			tracker := d.QueueFunc(context.Background(), func(ctx context.Context) (interface{}, error) {
+			f := func(ctx context.Context) (interface{}, error) {
 				<-proceed
+				<-ctx.Done()
+				return nil, errors.Wrap(ctx.Err(), "cancelled")
+			}
 
-				select {
-				case <-ctx.Done():
-					return nil, errors.Wrap(ctx.Err(), "cancelled")
-				}
-			})
+			tracker := qf(d, f)
 
 			status := tracker.Status()
 			assert.False(status.Complete)
@@ -280,7 +278,7 @@ func testQueueTimeout(t *testing.T, qf queueTimedFunc) {
 	assert.WithinDuration(status.FinishedAt, status.StartedAt, timeout+slop)
 }
 
-func testQueueTimeout_completeBeforeTimeout(t *testing.T, qf queueTimedFunc) {
+func testQueueTimeoutCompleteBeforeTimeout(t *testing.T, qf queueTimedFunc) {
 	assert := assert.New(t)
 
 	d := jobq.NewWorkerDispatcher()
