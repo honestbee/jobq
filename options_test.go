@@ -12,11 +12,12 @@ func TestWorkerMargin(t *testing.T) {
 	tests := []struct {
 		margin      float64
 		shouldPanic bool
+		testValue   int
 	}{
-		{0.0, true},
-		{-1.0, true},
-		{1.0, false},
-		{1024.0, false},
+		{0.0, true, 100},
+		{-1.0, true, 0},
+		{1.0, false, 0},
+		{1024.0, false, 0},
 	}
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("Set worker margin:%f", tt.margin), func(t *testing.T) {
@@ -28,6 +29,10 @@ func TestWorkerMargin(t *testing.T) {
 
 			f := func() {
 				WorkerMargin(tt.margin)(d)
+			}
+
+			if tt.testValue == 100 {
+				assert.Contains("ggtest", "gg")
 			}
 
 			if tt.shouldPanic {
