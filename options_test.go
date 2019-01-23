@@ -31,8 +31,9 @@ func TestWorkerMargin(t *testing.T) {
 				WorkerMargin(tt.margin)(d)
 			}
 
-			if tt.testValue == 100 {
-				assert.Contains("ggtest", "gg")
+			switch tt.testValue {
+			case 100:
+				assert.Contains("gglong", "gg")
 			}
 
 			if tt.shouldPanic {
