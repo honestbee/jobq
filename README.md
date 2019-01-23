@@ -1,5 +1,10 @@
 # jobq
 
+[![Drone Status](https://drone.honestbee.com/api/badges/honestbee/jobq/status.svg?branch=develop)](https://drone.honestbee.com/honestbee/jobq)
+[![Maintainability](https://api.codeclimate.com/v1/badges/ee67437d8c14bc7cf736/maintainability)](https://codeclimate.com/repos/5c46845c5263880240004a38/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/ee67437d8c14bc7cf736/test_coverage)](https://codeclimate.com/repos/5c46845c5263880240004a38/test_coverage)
+
+
 ---
 
 **jobq** is a generic worker pool library with dynamic adjust worker number
