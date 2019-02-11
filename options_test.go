@@ -126,6 +126,40 @@ func TestJobTimeoutRateBoundPercentage(t *testing.T) {
 	}
 }
 
+func TestEnableTrackReport(t *testing.T) {
+	tests := []struct {
+		desc        string
+		f           func(TrackParams)
+		shouldPanic bool
+	}{
+		{"Set nil metrics report function", nil, true},
+		{"Set dummy metrics report function", func(TrackParams) {}, false},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			d := &WorkerDispatcher{}
+
+			assert.Nil(d.reportFunc)
+
+			f := func() {
+				EnableTrackReport(tt.f)(d)
+			}
+
+			if tt.shouldPanic {
+				assert.Panics(f)
+				assert.Nil(d.reportFunc)
+			} else {
+				assert.NotPanics(f)
+				assert.NotNil(d.reportFunc)
+				assert.EqualValues(tt.f, d.reportFunc)
+			}
+		})
+	}
+}
+
 func TestMetricsReportPeriod(t *testing.T) {
 	tests := []struct {
 		period      time.Duration
@@ -156,6 +190,33 @@ func TestMetricsReportPeriod(t *testing.T) {
 			} else {
 				assert.NotPanics(f)
 				assert.Equal(tt.period, d.metricsReportPeriod)
+			}
+		})
+	}
+}
+
+func TestEnableDynamicAdjustWorkers(t *testing.T) {
+	tests := []struct {
+		enable bool
+	}{
+		{true},
+		{false},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("Set enable dynamic adjust workers to %t", tt.enable), func(t *testing.T) {
+			assert := assert.New(t)
+
+			d := &WorkerDispatcher{}
+
+			assert.False(d.enableDynamicWorker)
+
+			EnableDynamicAdjustWorkers(tt.enable)(d)
+
+			if tt.enable {
+				assert.True(d.enableDynamicWorker)
+			} else {
+				assert.False(d.enableDynamicWorker)
 			}
 		})
 	}

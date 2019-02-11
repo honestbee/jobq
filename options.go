@@ -31,7 +31,7 @@ func WorkerPoolSize(size int) WorkerDispatcherOption {
 
 // EnableTrackReport enables the tracking report function,
 // the input func sets how to report metrics.
-// ***Enable this the below options will be functional***
+// ***By turning this on (with non-nil input func), the below options go functional***
 // 1. MetricsReportPeriod
 func EnableTrackReport(f func(TrackParams)) WorkerDispatcherOption {
 	if f == nil {
@@ -53,7 +53,7 @@ func MetricsReportPeriod(period time.Duration) WorkerDispatcherOption {
 }
 
 // EnableDynamicAdjustWorkers enables the dynamic adjusting worker mechanism,
-// ***Enable this the below options will be functional***
+// ***By turning this on, the following options go functional:***
 // 1. WorkerAdjustPeriod
 // 2. JobTimeoutRateBoundPercentage
 // 3. WorkerLoadingBoundPercentage
