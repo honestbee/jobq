@@ -154,7 +154,6 @@ func TestEnableTrackReport(t *testing.T) {
 			} else {
 				assert.NotPanics(f)
 				assert.NotNil(d.reportFunc)
-				assert.EqualValues(tt.f, d.reportFunc)
 			}
 		})
 	}
