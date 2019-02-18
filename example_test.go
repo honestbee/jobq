@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"sync"
 	"time"
 
 	"github.com/honestbee/jobq"
@@ -67,25 +66,17 @@ func Example_getAllResults() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	var wg sync.WaitGroup
-
 	// Queue a normal job func which doesn't get time-out.
 	var trackers []jobq.JobTracker
 	for i := 0; i < 10; i++ {
 		id := i
-		wg.Add(1)
 		tracker := dispatcher.QueueFunc(context.Background(), func(ctx context.Context) (interface{}, error) {
 			time.Sleep(time.Duration(rand.Intn(9)+1) * 100 * time.Millisecond)
 			return fmt.Sprintf("Job #%d", id), nil
 		})
-		go func() {
-			<-tracker.Done()
-			wg.Done()
-		}()
 		trackers = append(trackers, tracker)
 	}
 
-	wg.Wait()
 	for _, tracker := range trackers {
 		payload, err := tracker.Result()
 		if err != nil {
