@@ -124,7 +124,7 @@ import (
 )
 
 func main() {
-        // some prometeus register
+        // some prometheus register
         busyWorker := prometheus.NewGaugeVec(prometheus.GaugeOpts{
                 Name: "workerpool_total_workers",
                 Help: "Total number of workers in the worker pool.",
