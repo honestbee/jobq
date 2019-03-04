@@ -36,16 +36,16 @@ func NewWorkerDispatcher(opts ...WorkerDispatcherOption) *WorkerDispatcher {
 		opt(d)
 	}
 
+	if d.reportFunc != nil {
+		d.metric = newMetric(d.reportFunc)
+		d.startMetric()
+	}
+
 	d.jobC = make(chan *job, d.scaler.workerPoolSize)
 	d.setWorkerSize(d.scaler.workersNumLowerBound)
 
 	if d.enableDynamicWorker {
 		d.startWorkerAdjuster()
-	}
-
-	if d.reportFunc != nil {
-		d.metric = newMetric(d.reportFunc)
-		d.startMetric()
 	}
 
 	d.startDispatcher()
