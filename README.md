@@ -125,16 +125,26 @@ import (
 
 func main() {
         // some prometheus register
-        busyWorker := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+        jobQueueSize := prometheus.NewGauge(prometheus.GaugeOpts{
+                Name: "workerpool_current_job_queue_size",
+                Help: "Total number of the current job queue size.",
+        })
+        totalWorker := prometheus.NewGauge(prometheus.GaugeOpts{
                 Name: "workerpool_total_workers",
                 Help: "Total number of workers in the worker pool.",
-        }, []string{"name"}))
-        prometheus.MustRegister(busyWorker)
+        })
+        busyWorker := prometheus.NewGauge(prometheus.GaugeOpts{
+                Name: "workerpool_busy_workers",
+                Help: "Total number of the busy workers.",
+        })
+        prometheus.MustRegister(jobQueueSize, totalWorker, busyWorker)
 
         dispatcher := jobq.NewWorkerDispatcher(
                 // set the report function
                 jobq.EnableTrackReport(func(p jobq.TrackParams){
-                       busyWorker.Set(p.BusyWorkers) 
+                        jobQueueSize.Set(float64(p.JobQueueSize))
+                        totalWorker.Set(float64(p.TotalWorkers))
+                        busyWorker.Set(float64(p.BusyWorkers))
                 }),
                 // set every 30 second will report the metrics
                 jobq.MetricsReportPeriod(30*time.Second),
