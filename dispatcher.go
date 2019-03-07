@@ -110,7 +110,7 @@ func (d *WorkerDispatcher) startMetric() {
 		for {
 			select {
 			case <-ticker.C:
-				go d.metric.Report()
+				d.metric.Report()
 			case <-d.stopC:
 				ticker.Stop()
 				close(done)
@@ -129,7 +129,7 @@ func (d *WorkerDispatcher) startWorkerAdjuster() {
 		for {
 			select {
 			case <-ticker.C:
-				go d.setWorkerSize(d.scaler.scale(d.metric))
+				d.setWorkerSize(d.scaler.scale(d.metric))
 			case <-d.stopC:
 				ticker.Stop()
 				close(done)

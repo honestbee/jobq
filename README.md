@@ -7,7 +7,10 @@
 
 ---
 
-**jobq** is a generic worker pool library with dynamic adjust worker number
+**jobq** is a generic worker pool library with 
+1. dynamic adjust worker number
+2. self-expiring job
+3. easy exported metrics
 
 ## Install
 
@@ -32,6 +35,7 @@ go test -v -race ./...
 package main
 
 import (
+	"context"
         "time"
 
         "github.com/honestbee/jobq"
@@ -46,7 +50,7 @@ func main() {
                 return "success", nil
         }
 
-        tracker := dispatcher.QueueFunc(job)
+        tracker := dispatcher.QueueFunc(context.Background(), job)
 
         payload, err := tracker.Result()
         status := tracker.Status()
@@ -63,96 +67,6 @@ func main() {
         // complete=true
         // success=true
         // payload=success
-}
-```
-
-### enable dynamic worker
-
-```golang
-package main
-
-import (
-        "time"
-
-        "github.com/honestbee/jobq"
-)
-
-func main() {
-        dispatcher := jobq.NewWorkerDispatcher(
-                // enable dynamic workers
-                jobq.EnableDynamicAdjustWorkers(true),
-                // every 1 second will checking the adjustment needs or not
-                jobq.WorkerAdjustPeriod(time.Second),
-                // set up one of the adjustment condition,
-                // when the worker loading reach 80 percentage 
-                // will raise the worker number
-                jobq.WorkerLoadingBoundPercentage(20, 80),
-                // set 10 times worker number when increase
-                jobq.WorkerMargin(10),
-                // init 1 workers
-                jobq.WorkerN(1),
-                // init worker pool size to 10
-                jobq.WorkerPoolSize(10),
-        )
-        defer dispatcher.Stop()
-
-        job := func(ctx context.Context) (interface{}, error) {
-                time.Sleep(20 *time.Second)
-                return "success", nil
-        }
-
-        for i := 0; i < 9; i++ {
-                // fill up sleeping jobs to let worker loading
-                // over 80 percentage
-                dispatcher.QueueFunc(job)
-        }
-
-        // now the worker number will increase from 1 to 10
-}
-```
-
-### metrics report
-
-```golang
-package main
-
-import (
-        "time"
-
-        "github.com/honestbee/jobq"
-        "github.com/prometheus/client_golang/prometheus"
-)
-
-func main() {
-        // some prometheus register
-        jobQueueSize := prometheus.NewGauge(prometheus.GaugeOpts{
-                Name: "workerpool_current_job_queue_size",
-                Help: "Total number of the current job queue size.",
-        })
-        totalWorker := prometheus.NewGauge(prometheus.GaugeOpts{
-                Name: "workerpool_total_workers",
-                Help: "Total number of workers in the worker pool.",
-        })
-        busyWorker := prometheus.NewGauge(prometheus.GaugeOpts{
-                Name: "workerpool_busy_workers",
-                Help: "Total number of the busy workers.",
-        })
-        prometheus.MustRegister(jobQueueSize, totalWorker, busyWorker)
-
-        dispatcher := jobq.NewWorkerDispatcher(
-                // set the report function
-                jobq.EnableTrackReport(func(p jobq.TrackParams){
-                        jobQueueSize.Set(float64(p.JobQueueSize))
-                        totalWorker.Set(float64(p.TotalWorkers))
-                        busyWorker.Set(float64(p.BusyWorkers))
-                }),
-                // set every 30 second will report the metrics
-                jobq.MetricsReportPeriod(30*time.Second),
-        )
-        defer dispatcher.Stop()
-
-        // do some job
-        // ...
 }
 ```
 

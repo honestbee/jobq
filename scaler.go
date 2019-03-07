@@ -6,9 +6,9 @@ const (
 	defaultWorkerLoadingUpperBoundPercentage  float64 = 80.0
 	defaultWorkerLoadingLowerBoundPercentage  float64 = 20.0
 	defaultWorkersNumUpperBound               int     = 2 << 17
-	defaultWorkersNumLowerBound               int     = 2 << 10
+	defaultWorkersNumLowerBound               int     = 2 << 9
 	defaultWorkerMargin                       float64 = 2.0
-	defaultWorkerPoolSize                             = 2 >> 10
+	defaultWorkerPoolSize                             = 2 << 9
 )
 
 // scaler calculates how many worker should be enabled.
